@@ -66,8 +66,25 @@ public class EarthquakeAdapter extends ArrayAdapter<EarthquakeItems> {
 
         String part2 = parts[1];
 
+//       if (part2.trim().length()==0){
+//           part2 = "a ";
+//       }
+
+       if (part2 != null ){
+
+           txt_place.setText(part2);
+
+
+       }else
+       {
+          txt_place.setText(" ");
+       }
+
+
+
         txt_direction.setText(part1);
-       txt_place.setText(part2);
+
+//       txt_place.setText(part2);
 
 
 
