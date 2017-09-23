@@ -3,6 +3,7 @@ package com.example.android.quakereport;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,9 @@ import java.util.Date;
  */
 
 public class EarthquakeAdapter extends ArrayAdapter<EarthquakeItems> {
+
+
+    private static final String TAG = EarthquakeAdapter.class.getName();
 
 
     public EarthquakeAdapter(Context context, ArrayList<EarthquakeItems> earthquakeItemses ){
@@ -58,31 +62,50 @@ public class EarthquakeAdapter extends ArrayAdapter<EarthquakeItems> {
 
         String split = currentEarthquakeItems.getLocation();
 
-        String[] parts = split.split("of");
+        int match = split.indexOf("of");
+
+        if (match== -1){
 
 
-        String part1 = parts[0];
+            txt_place.setText(split);
+
+            Log.i(TAG, "in the main block");
+
+        }
+        else{
+            String[] parts = split.split("of");
 
 
-        String part2 = parts[1];
+            String part1 = parts[0];
+
+
+            String part2 = parts[1];
+            txt_direction.setText(part1);
+            txt_place.setText(part2);
+
+            Log.i(TAG, "in the else block");
+
+        }
+
+
 
 //       if (part2.trim().length()==0){
 //           part2 = "a ";
 //       }
 
-       if (part2 != null ){
+//       if (part2 != null ){
+//
+//           txt_place.setText(part2);
+//
+//
+//       }else
+//       {
+//          txt_place.setText(" ");
+//       }
 
-           txt_place.setText(part2);
-
-
-       }else
-       {
-          txt_place.setText(" ");
-       }
 
 
 
-        txt_direction.setText(part1);
 
 //       txt_place.setText(part2);
 
