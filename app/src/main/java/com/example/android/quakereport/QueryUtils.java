@@ -1,5 +1,6 @@
 package com.example.android.quakereport;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -7,7 +8,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by senamit on 20/9/17.
@@ -16,6 +26,7 @@ import java.util.ArrayList;
 public final class QueryUtils {
 
 
+    private static String LOG_TAG = QueryUtils.class.getSimpleName();
 
     /** Sample JSON response for a USGS query */
     private static final String SAMPLE_JSON_RESPONSE = "{\"type\":\"FeatureCollection\",\"metadata\":{\"generated\":1462295443000,\"url\":\"http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2016-01-01&endtime=2016-01-31&minmag=6&limit=10\",\"title\":\"USGS Earthquakes\",\"status\":200,\"api\":\"1.5.2\",\"limit\":10,\"offset\":1,\"count\":10},\"features\":[{\"type\":\"Feature\",\"properties\":{\"mag\":7.2,\"place\":\"88km N of Yelizovo, Russia\",\"time\":1454124312220,\"updated\":1460674294040,\"tz\":720,\"url\":\"http://earthquake.usgs.gov/earthquakes/eventpage/us20004vvx\",\"detail\":\"http://earthquake.usgs.gov/fdsnws/event/1/query?eventid=us20004vvx&format=geojson\",\"felt\":2,\"cdi\":3.4,\"mmi\":5.82,\"alert\":\"green\",\"status\":\"reviewed\",\"tsunami\":1,\"sig\":798,\"net\":\"us\",\"code\":\"20004vvx\",\"ids\":\",at00o1qxho,pt16030050,us20004vvx,gcmt20160130032510,\",\"sources\":\",at,pt,us,gcmt,\",\"types\":\",cap,dyfi,finite-fault,general-link,general-text,geoserve,impact-link,impact-text,losspager,moment-tensor,nearby-cities,origin,phase-data,shakemap,tectonic-summary,\",\"nst\":null,\"dmin\":0.958,\"rms\":1.19,\"gap\":17,\"magType\":\"mww\",\"type\":\"earthquake\",\"title\":\"M 7.2 - 88km N of Yelizovo, Russia\"},\"geometry\":{\"type\":\"Point\",\"coordinates\":[158.5463,53.9776,177]},\"id\":\"us20004vvx\"},\n" +
@@ -36,33 +47,39 @@ public final class QueryUtils {
     }
 
 
-    public static ArrayList<EarthquakeItems> extractEarthquake() {
+    public static List<EarthquakeItems> extractFeatureFromJson(String earthquakeJson) {
 
-        ArrayList<EarthquakeItems> earthquakeItemses = new ArrayList<EarthquakeItems>();
+        if (TextUtils.isEmpty(earthquakeJson)){
+            return null;
+        }
+
+       List<EarthquakeItems> earthquakeItems = new ArrayList<EarthquakeItems>();
 
 
         try{
 
-            JSONObject rootJsonObject = new JSONObject(SAMPLE_JSON_RESPONSE);
+            JSONObject baseJsonResponse = new JSONObject(earthquakeJson);
 
-            JSONArray jsonArray = rootJsonObject.optJSONArray("features");
+            JSONArray earthquakeArray = baseJsonResponse.optJSONArray("features");
 
 
-            for (int i=0; i<jsonArray.length(); i++){
+            for (int i=0; i<earthquakeArray.length(); i++){
 
-                JSONObject jsonObjectProperties = jsonArray.optJSONObject(i); //i cant understand this line of code
+                JSONObject currentEarthquake = earthquakeArray.optJSONObject(i); //i cant understand this line of code
 
-             JSONObject jsonArrayProperties = jsonObjectProperties.getJSONObject("properties");
+             JSONObject properties = currentEarthquake.getJSONObject("properties");
 
 //                JSONArray jsonArrayProperties = jsonObjectProperties.getJSONArray("properties");
 
 
 
-                 double mag  =  jsonArrayProperties.getDouble("mag");
-                String location = jsonArrayProperties.getString("place");
-                long time = jsonArrayProperties.getLong("time");
+                 double mag  =  properties.getDouble("mag");
+                String location = properties.getString("place");
+                long time = properties.getLong("time");
+                //extract the value for key called url
+                String url = properties.getString("url");
 
-                earthquakeItemses.add(new EarthquakeItems(mag, location, time));
+                earthquakeItems.add(new EarthquakeItems(mag, location, time, url));
             }
 
 
@@ -75,11 +92,98 @@ public final class QueryUtils {
         };
 
 
-        return earthquakeItemses;
+        return earthquakeItems;
 
     }
 
+    private static URL createUrl(String Stringurl){
 
+
+        //here i had just written URL url = new URL(Stringurl) and then resolved the error(alt+enter) and its converted into it
+        //by putting itself into try catch block
+        URL url = null;
+        try {
+            url = new URL(Stringurl);
+        } catch (MalformedURLException e) {
+//            e.printStackTrace();
+            Log.e(LOG_TAG, "problem building the url  "+e );
+        }
+
+
+        return url;
+
+    }
+    private static String makeHttpReuest(URL url) throws IOException {
+
+        HttpURLConnection urlConnection= null;
+        String jsonResponse=null;
+        InputStream inputStream = null;
+
+        try {
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setReadTimeout(10000);
+            urlConnection.setConnectTimeout(15000);
+            urlConnection.setRequestMethod("GET");
+            urlConnection.connect();
+
+            inputStream = urlConnection.getInputStream();
+            jsonResponse = readFromStream(inputStream);
+            urlConnection.disconnect();;
+            inputStream.close();
+
+
+        }catch (IOException e){
+
+            Log.e(LOG_TAG, "Problem retriving the earthquakeJsonResponse  "+ urlConnection.getResponseCode());
+
+        }
+
+
+
+
+
+
+        return jsonResponse;
+    }
+
+    private static String readFromStream(InputStream inputStream) throws IOException {
+
+
+
+        StringBuilder output = new StringBuilder();
+
+        if (inputStream !=null){
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
+            BufferedReader bufferReader = new BufferedReader(inputStreamReader);
+            String line = bufferReader.readLine();
+            while (line!=null){
+                output.append(line);
+                line=bufferReader.readLine();
+            }
+
+        }
+
+
+
+        return output.toString();
+    }
+
+    public static List<EarthquakeItems> fetchEarthquakeData(String requestUrl){
+
+        URL url = createUrl(requestUrl);
+
+        String jsonResponse = null;
+
+        try {
+            jsonResponse = makeHttpReuest(url);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "problem making an http request  "+ e);
+        }
+
+        List<EarthquakeItems> earthquakeItem = extractFeatureFromJson(jsonResponse);
+
+        return earthquakeItem;
+    }
 
 
 }

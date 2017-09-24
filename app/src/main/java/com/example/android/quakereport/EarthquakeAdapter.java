@@ -13,6 +13,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by senamit on 20/9/17.
@@ -47,7 +48,7 @@ public class EarthquakeAdapter extends ArrayAdapter<EarthquakeItems> {
         EarthquakeItems currentEarthquakeItems = getItem(position);
 
         TextView txt_mag = (TextView) listItemView.findViewById(R.id.txt_mag);
-//        txt_mag.setText(currentEarthquakeItems.getMagnitude());
+
 
         String magnitude = magnitudeFormatter(currentEarthquakeItems.getMagnitude());
         txt_mag.setText(magnitude);
@@ -57,7 +58,7 @@ public class EarthquakeAdapter extends ArrayAdapter<EarthquakeItems> {
 
         TextView txt_direction = (TextView) listItemView.findViewById(R.id.txt_direction);
         TextView txt_place = (TextView) listItemView.findViewById(R.id.txt_place);
-//        txt_location.setText(currentEarthquakeItems.getLocation());
+
 
 
         String split = currentEarthquakeItems.getLocation();
@@ -89,25 +90,6 @@ public class EarthquakeAdapter extends ArrayAdapter<EarthquakeItems> {
 
 
 
-//       if (part2.trim().length()==0){
-//           part2 = "a ";
-//       }
-
-//       if (part2 != null ){
-//
-//           txt_place.setText(part2);
-//
-//
-//       }else
-//       {
-//          txt_place.setText(" ");
-//       }
-
-
-
-
-
-//       txt_place.setText(part2);
 
 
 

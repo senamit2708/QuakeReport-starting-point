@@ -11,13 +11,15 @@ public class EarthquakeItems {
     private double magnitude;
     private String location;
     private long time;
+    private String url;
 //    private long date;
 
 
-    public EarthquakeItems(double magnitude, String location, long time) {
+    public EarthquakeItems(double magnitude, String location, long time, String url) {
         this.magnitude = magnitude;
         this.location = location;
         this.time = time;
+        this.url = url;
     }
 
     public double getMagnitude() {
@@ -32,11 +34,7 @@ public class EarthquakeItems {
         return time;
     }
 
-//    public long getDate() {
-//        return date;
-//    }
-//
-//    public void setDate(long date) {
-//        this.date = date;
-//    }
+    public String getUrl() {
+        return url;
+    }
 }
